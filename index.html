@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<!--
+  EHCU Rule Navigator
+  Version 1
+  Created by Kosei Omasa
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>EHCU Rule Navigator Version 1</title>
+<style>
+:root{
+  --bg:#06172c;--bg2:#0a315f;--panel:#f8fbff;--text:#0b1220;--muted:#61738c;--line:#d8e3f0;--navy:#003b71;
+  --green:#eaf8ef;--green-b:#74cf91;--green-s:#167744;--yellow:#fff7d8;--yellow-b:#f0ce50;--yellow-s:#8a6500;
+  --orange:#fff0df;--orange-b:#f1a85d;--orange-s:#b25600;--purple:#f2eefe;--purple-b:#b7a2ef;--purple-s:#5c3bb6;
+  --blue:#eaf4ff;--blue-b:#9bc8f6;--blue-s:#0961a8;--hybrid:#eef1eb;--hybrid-b:#b7b96e;--hybrid-s:#7a7d2f;--gray:#f1f4f8;--gray-b:#c8d2df;--gray-s:#58677a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% -10%,rgba(61,142,219,.34),transparent 34rem),linear-gradient(180deg,var(--bg2),var(--bg) 34rem,#07101f);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;letter-spacing:0}
+button,select{font:inherit}
+button{touch-action:manipulation}
+.app{width:min(760px,100%);margin:0 auto;padding:12px 12px 28px}
+.top{position:sticky;top:0;z-index:10;margin:-1px -12px 12px;padding:12px;background:rgba(6,23,44,.88);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:saturate(160%) blur(18px)}
+.brand{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;color:#fff}
+.hospital{margin:0 0 3px;color:#c8dafa;font-size:12px;line-height:1.35;font-weight:800}
+.title{margin:0;font-size:26px;line-height:1.04;font-weight:950}
+.version{border:1px solid rgba(255,255,255,.32);border-radius:999px;color:#eaf3ff;padding:6px 10px;font-size:12px;font-weight:900;white-space:nowrap}
+.panel{background:rgba(248,251,255,.96);border:1px solid rgba(216,227,240,.86);border-radius:22px;padding:16px;box-shadow:0 18px 44px rgba(3,17,34,.22)}
+.panel+.panel{margin-top:12px}
+.home-title{margin:0 0 8px;color:#fff;font-size:18px;font-weight:900}
+.home-sub{margin:0 0 14px;color:#d6e6f8;font-size:13px;line-height:1.65;font-weight:700}
+.stack,.choice-grid,.steps,.legend{display:grid;gap:10px}
+.choice-grid.two{grid-template-columns:1fr 1fr}
+.btn{min-height:58px;width:100%;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:#fff;color:#0a2342;padding:14px 16px;font-size:17px;line-height:1.25;font-weight:900;text-align:left;box-shadow:0 8px 22px rgba(6,23,44,.10)}
+.btn.primary{min-height:76px;background:linear-gradient(180deg,#fff,#f3f8ff);border-color:#c9d9ec;font-size:20px}
+.btn.dark{background:var(--navy);color:#fff}
+.btn.small{min-height:46px;padding:10px 12px;font-size:14px;text-align:center}
+.btn:active{transform:translateY(1px)}
+.nav-row{display:flex;justify-content:space-between;gap:10px;margin:12px 0 0}.nav-row .btn{width:auto;min-width:112px;box-shadow:none}
+.selection{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+.pill{border:1px solid #cbd8e6;border-radius:999px;background:#fff;color:#31445e;padding:7px 10px;font-size:12px;font-weight:850}
+.step-head{margin:0 0 8px;color:#52657a;font-size:13px;line-height:1.5;font-weight:900}
+.step-title{margin:0 0 12px;color:#06172c;font-size:24px;line-height:1.25;font-weight:950}
+.select-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:14px}
+.select-card label{display:block;margin:0 0 9px;color:#233751;font-size:15px;font-weight:950}
+select{width:100%;min-height:58px;border:1px solid #b9c9dc;border-radius:14px;background:#fff;color:#0b1220;padding:0 14px;font-size:17px;font-weight:850}
+.result{border:1px solid var(--line);border-left-width:8px;border-radius:18px;padding:14px;background:#fff}
+.result+.result{margin-top:10px}
+.result.green{background:var(--green);border-color:var(--green-b);border-left-color:var(--green-s)}
+.result.yellow{background:var(--yellow);border-color:var(--yellow-b);border-left-color:var(--yellow-s)}
+.result.orange{background:var(--orange);border-color:var(--orange-b);border-left-color:var(--orange-s)}
+.result.purple{background:var(--purple);border-color:var(--purple-b);border-left-color:var(--purple-s)}
+.result.blue{background:var(--blue);border-color:var(--blue-b);border-left-color:var(--blue-s)}
+.result.hybrid{background:var(--hybrid);border-color:var(--hybrid-b);border-left-color:var(--hybrid-s)}
+.result.gray{background:var(--gray);border-color:var(--gray-b);border-left-color:var(--gray-s)}
+.result-kicker{margin:0 0 5px;color:#4b5d74;font-size:12px;font-weight:900}
+.result-title{margin:0;font-size:23px;line-height:1.25;font-weight:950}
+.result-list{display:grid;gap:8px;margin:12px 0 0;padding:0;list-style:none}
+.result-list li{position:relative;padding-left:18px;color:#1f3148;font-size:15px;line-height:1.55;font-weight:800}
+.result-list li:before{content:"";position:absolute;left:1px;top:.68em;width:7px;height:7px;border-radius:999px;background:currentColor;opacity:.56}
+.notice{border:1px solid #f0ce50;border-radius:16px;background:#fff9e8;color:#61470a;padding:12px;font-size:14px;line-height:1.55;font-weight:900;margin-bottom:10px}
+.step-card{display:grid;grid-template-columns:42px 1fr;gap:11px;align-items:start;border:1px solid #d8e3f0;border-radius:18px;background:#fff;padding:12px}
+.num{display:grid;place-items:center;width:42px;height:42px;border-radius:999px;background:var(--navy);color:#fff;font-size:17px;font-weight:950}
+.step-card h3{margin:0 0 5px;color:#0b1220;font-size:18px;line-height:1.35;font-weight:950}
+.step-card p{margin:0;color:#52657a;font-size:13px;line-height:1.55;font-weight:750}
+.legend-item{display:flex;align-items:center;gap:8px;color:#334155;font-size:12px;line-height:1.35;font-weight:800}
+.swatch{width:18px;height:18px;border-radius:6px;border:1px solid var(--line);flex:0 0 auto}
+.swatch.green{background:var(--green);border-color:var(--green-b)}.swatch.yellow{background:var(--yellow);border-color:var(--yellow-b)}.swatch.orange{background:var(--orange);border-color:var(--orange-b)}
+.swatch.purple{background:var(--purple);border-color:var(--purple-b)}.swatch.blue{background:var(--blue);border-color:var(--blue-b)}.swatch.gray{background:var(--gray);border-color:var(--gray-b)}
+.rule-open{margin-top:12px;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff;box-shadow:none;text-align:center}
+.rulebook{display:grid;gap:12px}
+.rule-section{border:1px solid var(--line);border-radius:18px;background:#fff;padding:14px}
+.rule-section h2{margin:0 0 9px;color:#06172c;font-size:20px;line-height:1.3;font-weight:950}
+.rule-section h3{margin:12px 0 6px;color:#18304f;font-size:16px;line-height:1.35;font-weight:950}
+.rule-section ul,.rule-section ol{margin:8px 0 0;padding-left:22px;color:#24364f;font-size:14px;line-height:1.65;font-weight:750}
+.rule-section li+li{margin-top:4px}
+.rule-note{border-left:6px solid var(--navy);border-radius:14px;background:#eef6ff;padding:12px;color:#1d3858;font-size:14px;line-height:1.6;font-weight:850}
+.footer{margin:16px 0 0;color:#c8dafa;font-size:11px;text-align:center;font-weight:800}
+.hidden{display:none!important}
+@media(max-width:430px){
+  .app{padding:10px 10px 24px}.top{margin:-1px -10px 10px;padding:10px}.brand{grid-template-columns:1fr}.version{justify-self:start}.title{font-size:24px}
+  .panel{border-radius:20px;padding:14px}.step-title{font-size:22px}.btn.primary{min-height:70px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand">
+      <div>
+        <p class="hospital">済生会横浜市東部病院<br>救命救急センター</p>
+        <h1 class="title">EHCU Rule Navigator</h1>
+      </div>
+      <div class="version">Version 1</div>
+    </div>
+  </header>
+
+  <section id="home">
+    <h2 class="home-title">使うフローを選択</h2>
+    <p class="home-sub">入室時と転科時では判断の流れが異なります。まず使用するフローを選んでください。</p>
+    <div class="stack">
+      <button class="btn primary" data-start="admission">EHCU入室時フロー</button>
+      <button class="btn primary" data-start="transfer">転科時フロー</button>
+    </div>
+    <button class="btn rule-open" type="button" data-rules>ルール参照</button>
+  </section>
+
+  <section id="appPanel" class="panel hidden" aria-live="polite">
+    <div id="selected" class="selection"></div>
+    <div id="results"></div>
+    <div id="question"></div>
+    <div id="extraSteps"></div>
+    <div class="nav-row">
+      <button id="backBtn" class="btn small" type="button">戻る</button>
+      <button id="homeBtn" class="btn small dark" type="button">最初に戻る</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="step-title">色の凡例</h2>
+    <div class="legend">
+      <div class="legend-item"><span class="swatch green"></span>緑：NEWS低値・一般病棟優先検討</div>
+      <div class="legend-item"><span class="swatch yellow"></span>黄色：EHCU入室検討</div>
+      <div class="legend-item"><span class="swatch orange"></span>オレンジ：総合内科ルート</div>
+      <div class="legend-item"><span class="swatch purple"></span>紫：他科転科・内科輪番直接ルート</div>
+      <div class="legend-item"><span class="swatch blue"></span>青：救急科主科ルート</div>
+      <div class="legend-item"><span class="swatch gray"></span>グレー：EHCU内転科対象外・転棟時転科</div>
+    </div>
+  </section>
+
+  <footer class="footer">Created by Kosei Omasa</footer>
+</main>
+
+<script>
+const gmDiseases=["誤嚥性肺炎","尿路感染症","胃腸炎（細菌性・感染性）","敗血症・菌血症","社会的入院","膠原病","血液疾患","貧血（消化管出血を除く）","アレルギー性疾患","蜂窩織炎・うっ滞性皮膚炎","横紋筋融解","該当なし"];
+const transferDepts=["救急科","循環器内科","脳神経内科","消化器内科","腎臓内科","泌尿器科","脳神経外科","消化器外科","呼吸器内科","糖尿病内分泌内科","血管外科","心臓血管外科","その他"];
+const newsOptions=["NEWS＜4","NEWS≧4"];
+const timeOptions=["平日日勤","夜間・休日"];
+const eicuOptions=["EICU加療歴なし","EICU加療歴あり / Step down後"];
+const state={screen:"home",history:[],admission:{},transfer:{}};
+const $=id=>document.getElementById(id);
+
+function resetFlow(flow){state.screen=flow;state.history=[];state.admission={};state.transfer={};render()}
+function snapshot(){return JSON.stringify({screen:state.screen,admission:state.admission,transfer:state.transfer})}
+function restore(data){const r=JSON.parse(data);state.screen=r.screen;state.admission=r.admission;state.transfer=r.transfer}
+function remember(){state.history.push(snapshot())}
+function setValue(area,key,value){
+  if(!value)return;
+  remember();
+  state[area][key]=value;
+  if(area==="admission"){
+    if(key==="news"){state.admission.disease=null;state.admission.time=null;state.admission.dept=null}
+    if(key==="disease"){state.admission.time=null;state.admission.dept=null}
+  }
+  if(area==="transfer"){
+    if(key==="disease"){state.transfer.time=null;state.transfer.eicu=null;state.transfer.dept=null}
+    if(key==="time"){state.transfer.eicu=null}
+  }
+  render();
+}
+function goHome(){state.screen="home";state.history=[];state.admission={};state.transfer={};render()}
+function showRules(){remember();state.screen="rules";render()}
+function back(){const last=state.history.pop();if(!last){goHome();return}restore(last);render()}
+function isGm(v){return v&&v!=="該当なし"}
+function selectedPills(items){return items.filter(Boolean).map(i=>`<span class="pill">${i}</span>`).join("")}
+function resultCard(tone,title,items,kicker="判定結果"){return `<section class="result ${tone}"><p class="result-kicker">${kicker}</p><h2 class="result-title">${title}</h2><ul class="result-list">${items.map(i=>`<li>${i}</li>`).join("")}</ul></section>`}
+function buttonQuestion(title,area,key,options,sub=""){
+  return `<section><p class="step-head">${sub}</p><h2 class="step-title">${title}</h2><div class="choice-grid two">${options.map(o=>`<button class="btn" type="button" data-set="${area}:${key}:${o}">${o}</button>`).join("")}</div></section>`;
+}
+function selectQuestion(title,area,key,options,sub=""){
+  const choices=options.map(o=>`<option value="${o}">${o}</option>`).join("");
+  return `<section class="select-card"><p class="step-head">${sub}</p><h2 class="step-title">${title}</h2><label for="${area}-${key}">選択してください</label><select id="${area}-${key}" data-select="${area}:${key}"><option value="">未選択</option>${choices}</select></section>`;
+}
+function numberedSteps(title,steps){return `<section class="panel" style="margin-top:12px"><h2 class="step-title">${title}</h2><div class="steps">${steps.map((s,i)=>`<article class="step-card"><div class="num">${i+1}</div><div><h3>${s.title}</h3>${s.text?`<p>${s.text}</p>`:""}</div></article>`).join("")}</div></section>`}
+function commonTransferSteps(isNight=false){return numberedSteps("EHCU内転科成立時の共通STEP",[{title:"転科先へ依頼"},{title:"直接電話またはLINE WORKSで情報共有"},{title:"救急科で電子カルテ上の主科・主治医変更"},{title:"救急科で重症指示簿を消去"},{title:isNight?"EHCU病棟番が一般病棟用指示簿へ書き換え":"転科先が一般病棟用指示簿へ書き換え"},{title:isNight?"翌平日日勤帯に転科先がドクターコール順序を記載":"転科先がドクターコール順序を記載"}])}
+function wardTransferSteps(){return numberedSteps("転棟時転科ルート",[{title:"転棟可能となった時点",text:"転棟可能となった時点で、転棟後主科へ連絡。直接電話またはLINE WORKSで情報共有。"},{title:"平日日勤の転棟時",text:"転棟時に転棟後主科へ連絡。"},{title:"夜間・休日の転棟時",text:"原則として夜間・休日の転棟は控える。やむを得ず転棟する場合は、転棟後主科へLINE WORKSで連絡。"}])}
+
+function renderAdmission(){
+  const a=state.admission;
+  const selected=selectedPills(["EHCU入室時フロー",a.news,a.disease,a.time,a.dept]);
+  let q="",results="",extra="";
+  if(!a.news){q=buttonQuestion("STEP 1：NEWS判定","admission","news",newsOptions);return{selected,q,results,extra}}
+  if(a.news==="NEWS＜4"){
+    results=resultCard("green","一般病棟をまず考慮",["一般病棟をまず考慮","急変リスク・モニタリング必要性を再評価","必要時のみEHCU入室を個別判断","主科は相談の上決定"],"STEP 1");
+    return{selected,q,results,extra};
+  }
+  results+=resultCard("yellow","EHCU入室を検討",["EHCU入室を検討","STEP 2へ進む"],"STEP 1");
+  if(!a.disease){q=selectQuestion("STEP 2：総合内科対象疾患を選択","admission","disease",gmDiseases);return{selected,q,results,extra}}
+  if(isGm(a.disease)){
+    results+=resultCard("orange","総合内科ルート",["総合内科対象疾患として対応","STEP 3：時間帯を選択"],"STEP 2");
+    if(!a.time){q=buttonQuestion("STEP 3：時間帯を選択","admission","time",timeOptions);return{selected,q,results,extra}}
+    results+=a.time==="平日日勤"
+      ? resultCard("orange","平日日勤：総合内科ルート",["井本先生へ連絡","総合内科主科または救急科主科","EHCU入室"],"STEP 3")
+      : resultCard("hybrid","夜間・休日：総合内科ルート",["救急科とEHCU病棟番で主科を協議","総合内科主科または救急科主科","EHCU入室"],"STEP 3");
+    return{selected,q,results,extra};
+  }
+  if(!a.dept){q=selectQuestion("STEP 3：主科を選択","admission","dept",transferDepts);return{selected,q,results,extra}}
+  if(a.dept==="その他"){
+    results+=resultCard("blue","救急科主科でEHCU入室",["救急科主科でEHCU入室","転科時は転科時フローに従う"]);
+    return{selected,q,results,extra};
+  }
+  if(!a.time){q=buttonQuestion("STEP 4：時間帯を選択","admission","time",timeOptions);return{selected,q,results,extra}}
+  if(a.time==="夜間・休日"){
+    results+=resultCard("purple",`${a.dept}主科でEHCU入室可能`,[`${a.dept}医師に相談し承諾を得て${a.dept}主科で入院`,"EHCU病棟番に連絡"]);
+  }else{
+    results+=resultCard("purple",`${a.dept}主科でEHCU入室可能`,[`${a.dept}主科でEHCU入室可能`,"救命病棟リーダー医師に連絡し最終決定",`${a.dept}主科でEHCU入院`]);
+  }
+  return{selected,q,results,extra};
+}
+
+function renderTransfer(){
+  const t=state.transfer;
+  const selected=selectedPills(["転科時フロー",t.disease,t.time,t.eicu,t.dept]);
+  let q="",results="",extra="";
+  if(!t.disease){q=selectQuestion("STEP 1：総合内科対象疾患を選択","transfer","disease",gmDiseases);return{selected,q,results,extra}}
+  if(isGm(t.disease)){
+    results+=resultCard("orange","総合内科転科ルート",["総合内科対象疾患として転科を検討","STEP 2：時間帯を選択"]);
+    if(!t.time){q=buttonQuestion("STEP 2：時間帯を選択","transfer","time",timeOptions);return{selected,q,results,extra}}
+    if(t.time==="夜間・休日"){
+      results+=resultCard("orange","夜間・休日も総合内科転科可能",["井本先生へLINE WORKSで連絡","総合内科転科となったことをEHCU病棟番へ連絡","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
+      extra=`<div class="notice">夜間・休日も、総合内科対象疾患は総合内科転科可能</div>`+commonTransferSteps(true);
+      return{selected,q,results,extra};
+    }
+    if(!t.eicu){
+      q=buttonQuestion("STEP 3：EICU加療歴あり？","transfer","eicu",eicuOptions);
+      return{selected,q,results,extra};
+    }
+    if(t.eicu==="EICU加療歴なし"){
+      results+=resultCard("orange","井本先生へ転科依頼",["まず井本先生へ転科依頼","不在・不可の場合は内科輪番当番へ依頼","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
+    }else{
+      results+=resultCard("purple","内科輪番当番へ直接依頼",["井本先生をスキップ","内科輪番当番へ直接依頼","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
+    }
+    extra=commonTransferSteps();
+    return{selected,q,results,extra};
+  }
+  if(!t.dept){q=selectQuestion("STEP 2：転科先を選択","transfer","dept",transferDepts);return{selected,q,results,extra}}
+  if(t.dept!=="その他"&&!t.time){q=buttonQuestion("STEP 3：時間帯を選択","transfer","time",timeOptions);return{selected,q,results,extra}}
+  if(t.dept==="その他"){
+    results+=resultCard("gray","EHCU内転科対象外",["この時点ではEHCU内転科せず、転棟時転科ルートへ進む","転棟可能となった時点で、転棟後主科へ連絡する"]);
+    extra=wardTransferSteps();
+  }else{
+    results+=t.time==="夜間・休日"
+      ? resultCard("purple",`${t.dept}へ夜間・休日EHCU内転科`,[`${t.dept}へLINE WORKSで連絡`,`${t.dept}転科となったことをEHCU病棟番へ連絡`,"転科成立後は、EHCU内転科成立時の共通STEPへ進む"])
+      : resultCard("purple",`${t.dept}へEHCU内転科`,["EHCU内転科可能",`${t.dept}へ依頼`,"直接電話またはLINE WORKSで情報共有","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
+    extra=commonTransferSteps(t.time==="夜間・休日");
+  }
+  return{selected,q,results,extra};
+}
+
+function renderWard(){return{selected:selectedPills(["転棟時転科"]),q:"",results:resultCard("gray","転棟時転科ルート",["EHCU内転科対象外、または転棟時に主科を変更する場合のルート","転棟可能となった時点で、転棟後主科へ連絡する"]),extra:wardTransferSteps()}}
+function renderRules(){return{selected:selectedPills(["ルール参照"]),results:"",extra:"",q:`
+  <section class="rulebook">
+    <div class="rule-note">このアプリは患者情報を入力せず、EHCU入室時・転科時に「誰へ連絡し、次に何をするか」を確認する院内運用専用ナビゲーターです。</div>
+
+    <section class="rule-section">
+      <h2>基本方針</h2>
+      <ul>
+        <li>最初に「EHCU入室時フロー」または「転科時フロー」を選択する。</li>
+        <li>総合内科対象疾患や主科など、選択肢が多い場面はプルダウンで選択する。</li>
+        <li>判定結果を上に表示し、次の操作を下に表示する。</li>
+        <li>チェックボックスは使わない。</li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2>EHCU入室時フロー</h2>
+      <h3>STEP 1：NEWS判定</h3>
+      <ul>
+        <li>NEWS＜4：一般病棟をまず考慮する。</li>
+        <li>NEWS≧4：EHCU入室を検討し、STEP 2へ進む。</li>
+      </ul>
+      <h3>STEP 2：総合内科対象疾患</h3>
+      <ul>
+        <li>総合内科対象疾患あり：総合内科ルートへ進む。</li>
+        <li>該当なし：主科を選択する。</li>
+      </ul>
+      <h3>STEP 3：総合内科ルートの時間帯</h3>
+      <ul>
+        <li>平日日勤：井本先生へ連絡し、総合内科主科または救急科主科でEHCU入室。</li>
+        <li>夜間・休日：救急科とEHCU病棟番で主科を協議し、総合内科主科または救急科主科でEHCU入室。</li>
+      </ul>
+      <h3>総合内科対象外の主科選択</h3>
+      <ul>
+        <li>その他：救急科主科でEHCU入室。転科時は転科時フローに従う。</li>
+        <li>その他以外：選択した主科でEHCU入室可能。</li>
+        <li>平日日勤：救命病棟リーダー医師に連絡し最終決定し、選択科主科でEHCU入院。</li>
+        <li>夜間・休日：選択科医師に相談し承諾を得て選択科主科で入院し、EHCU病棟番へ連絡。</li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2>転科時フロー</h2>
+      <h3>STEP 1：総合内科対象疾患</h3>
+      <ul>
+        <li>総合内科対象疾患あり：総合内科転科ルートへ進む。</li>
+        <li>該当なし：転科先を選択する。</li>
+      </ul>
+      <h3>総合内科転科ルート</h3>
+      <ul>
+        <li>平日日勤：EICU加療歴を確認する。</li>
+        <li>EICU加療歴なし：まず井本先生へ転科依頼。不在・不可の場合は内科輪番当番へ依頼。</li>
+        <li>EICU加療歴あり / Step down後：井本先生をスキップし、内科輪番当番へ直接依頼。</li>
+        <li>夜間・休日：井本先生へLINE WORKSで連絡し、総合内科転科となったことをEHCU病棟番へ連絡。</li>
+      </ul>
+      <h3>総合内科対象外</h3>
+      <ul>
+        <li>その他以外：EHCU内転科可能。</li>
+        <li>平日日勤：転科先へ依頼し、直接電話またはLINE WORKSで情報共有。</li>
+        <li>夜間・休日：転科先へLINE WORKSで連絡し、転科となったことをEHCU病棟番へ連絡。</li>
+        <li>その他：EHCU内転科対象外。転棟時転科ルートへ進む。</li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2>EHCU内転科成立時の共通STEP</h2>
+      <ol>
+        <li>転科先へ依頼。</li>
+        <li>直接電話またはLINE WORKSで情報共有。</li>
+        <li>救急科で電子カルテ上の主科・主治医変更。</li>
+        <li>救急科で重症指示簿を消去。</li>
+        <li>平日日勤：転科先が一般病棟用指示簿へ書き換え。</li>
+        <li>夜間・休日：EHCU病棟番が一般病棟用指示簿へ書き換え。</li>
+        <li>平日日勤：転科先がドクターコール順序を記載。</li>
+        <li>夜間・休日：翌平日日勤帯に転科先がドクターコール順序を記載。</li>
+      </ol>
+    </section>
+
+    <section class="rule-section">
+      <h2>転棟時転科ルート</h2>
+      <ol>
+        <li>転棟可能となった時点で、転棟後主科へ連絡。直接電話またはLINE WORKSで情報共有。</li>
+        <li>平日日勤の転棟時：転棟後主科へ連絡。</li>
+        <li>夜間・休日の転棟時：原則として夜間・休日の転棟は控える。やむを得ず転棟する場合は、転棟後主科へLINE WORKSで連絡。</li>
+      </ol>
+    </section>
+
+    <section class="rule-section">
+      <h2>総合内科対象疾患</h2>
+      <ul>
+        <li>誤嚥性肺炎、尿路感染症、胃腸炎（細菌性・感染性）、敗血症・菌血症、社会的入院、膠原病、血液疾患、貧血（消化管出血を除く）、アレルギー性疾患、蜂窩織炎・うっ滞性皮膚炎、横紋筋融解。</li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2>主科・転科先選択肢</h2>
+      <ul>
+        <li>救急科、循環器内科、脳神経内科、消化器内科、腎臓内科、泌尿器科、脳神経外科、消化器外科、呼吸器内科、糖尿病内分泌内科、血管外科、心臓血管外科、その他。</li>
+      </ul>
+    </section>
+  </section>`}}
+
+function render(){
+  const isHome=state.screen==="home";
+  $("home").classList.toggle("hidden",!isHome);
+  $("appPanel").classList.toggle("hidden",isHome);
+  if(isHome)return;
+  const data=state.screen==="admission"?renderAdmission():state.screen==="transfer"?renderTransfer():state.screen==="rules"?renderRules():renderWard();
+  $("selected").innerHTML=data.selected;
+  $("question").innerHTML=data.q;
+  $("results").innerHTML=data.results;
+  $("extraSteps").innerHTML=data.extra;
+}
+document.addEventListener("click",event=>{
+  const start=event.target.closest("[data-start]");
+  if(start){resetFlow(start.dataset.start);return}
+  const rules=event.target.closest("[data-rules]");
+  if(rules){showRules();return}
+  const set=event.target.closest("[data-set]");
+  if(set){
+    const [area,key,...rest]=set.dataset.set.split(":");
+    setValue(area,key,rest.join(":"));
+  }
+});
+document.addEventListener("change",event=>{
+  const target=event.target.closest("[data-select]");
+  if(!target)return;
+  const [area,key]=target.dataset.select.split(":");
+  setValue(area,key,target.value);
+});
+$("backBtn").addEventListener("click",back);
+$("homeBtn").addEventListener("click",goHome);
+render();
+</script>
+</body>
+</html>
