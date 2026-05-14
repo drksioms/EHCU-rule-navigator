@@ -175,7 +175,7 @@ function selectQuestion(title,area,key,options,sub=""){
 }
 function numberedSteps(title,steps){return `<section class="panel" style="margin-top:12px"><h2 class="step-title">${title}</h2><div class="steps">${steps.map((s,i)=>`<article class="step-card"><div class="num">${i+1}</div><div><h3>${s.title}</h3>${s.text?`<p>${s.text}</p>`:""}</div></article>`).join("")}</div></section>`}
 function commonTransferSteps(isNight=false){return numberedSteps("EHCU内転科成立時の共通STEP",[{title:"転科先へ依頼"},{title:"直接電話またはLINE WORKSで情報共有"},{title:"救急科で電子カルテ上の主科・主治医変更"},{title:"救急科で重症指示簿を消去"},{title:isNight?"EHCU病棟番が一般病棟用指示簿へ書き換え":"転科先が一般病棟用指示簿へ書き換え"},{title:isNight?"翌平日日勤帯に転科先がドクターコール順序を記載":"転科先がドクターコール順序を記載"}])}
-function wardTransferSteps(){return numberedSteps("転棟時転科ルート",[{title:"転棟可能となった時点",text:"転棟可能となった時点で、転棟後主科へ連絡。直接電話またはLINE WORKSで情報共有。"},{title:"平日日勤の転棟時",text:"転棟時に転棟後主科へ連絡。"},{title:"夜間・休日の転棟時",text:"原則として夜間・休日の転棟は控える。やむを得ず転棟する場合は、転棟後主科へLINE WORKSで連絡。"}])}
+function wardTransferSteps(){return numberedSteps("転棟時転科ルート",[{title:"転棟後主科の考え方",text:"内因性疾患は内科輪番の順番通り振り分け。外科系・マイナー疾患はそれぞれの科へ相談。"},{title:"転棟可能となった時点",text:"転棟可能となった時点で、転棟後主科へ連絡。直接電話またはLINE WORKSで情報共有。"},{title:"平日日勤の転棟時",text:"転棟時に転棟後主科へ連絡。"},{title:"夜間・休日の転棟時",text:"原則として夜間・休日の転棟は控える。やむを得ず転棟する場合は、転棟後主科へLINE WORKSで連絡。"}])}
 
 function renderAdmission(){
   const a=state.admission;
@@ -216,29 +216,31 @@ function renderTransfer(){
   let q="",results="",extra="";
   if(!t.disease){q=selectQuestion("STEP 1：総合内科対象疾患を選択","transfer","disease",gmDiseases);return{selected,q,results,extra}}
   if(isGm(t.disease)){
-    results+=resultCard("orange","総合内科転科ルート",["総合内科対象疾患として転科を検討","STEP 2：時間帯を選択"]);
+    results+=resultCard("orange","総合内科転科ルート",["総合内科対象疾患として転科を検討"]);
     if(!t.time){q=buttonQuestion("STEP 2：時間帯を選択","transfer","time",timeOptions);return{selected,q,results,extra}}
-    if(t.time==="夜間・休日"){
-      results+=resultCard("orange","夜間・休日も総合内科転科可能",["井本先生へLINE WORKSで連絡","総合内科転科となったことをEHCU病棟番へ連絡","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
-      extra=`<div class="notice">夜間・休日も、総合内科対象疾患は総合内科転科可能</div>`+commonTransferSteps(true);
-      return{selected,q,results,extra};
-    }
     if(!t.eicu){
       q=buttonQuestion("STEP 3：EICU加療歴あり？","transfer","eicu",eicuOptions);
       return{selected,q,results,extra};
     }
+    if(t.time==="夜間・休日" && t.eicu==="EICU加療歴なし"){
+      results+=resultCard("orange","夜間・休日：総合内科転科ルート",["井本先生へLINE WORKSで連絡","総合内科転科となったことをEHCU病棟番へ連絡","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
+      extra=`<div class="notice">夜間・休日も、総合内科対象疾患は総合内科転科可能</div>`+commonTransferSteps(true);
+      return{selected,q,results,extra};
+    }
     if(t.eicu==="EICU加療歴なし"){
       results+=resultCard("orange","井本先生へ転科依頼",["まず井本先生へ転科依頼","不在・不可の場合は内科輪番当番へ依頼","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
+    }else if(t.time==="夜間・休日"){
+      results+=resultCard("purple","内科輪番確認後に転科先へ依頼",["井本先生をスキップ","内科輪番を確認する","転科先へ連絡し承諾を得る","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
     }else{
       results+=resultCard("purple","内科輪番当番へ直接依頼",["井本先生をスキップ","内科輪番当番へ直接依頼","転科成立後は、EHCU内転科成立時の共通STEPへ進む"]);
     }
-    extra=commonTransferSteps();
+    extra=commonTransferSteps(t.time==="夜間・休日");
     return{selected,q,results,extra};
   }
   if(!t.dept){q=selectQuestion("STEP 2：転科先を選択","transfer","dept",transferDepts);return{selected,q,results,extra}}
   if(t.dept!=="その他"&&!t.time){q=buttonQuestion("STEP 3：時間帯を選択","transfer","time",timeOptions);return{selected,q,results,extra}}
   if(t.dept==="その他"){
-    results+=resultCard("gray","EHCU内転科対象外",["この時点ではEHCU内転科せず、転棟時転科ルートへ進む","転棟可能となった時点で、転棟後主科へ連絡する"]);
+    results+=resultCard("gray","EHCU内転科対象外",["この時点ではEHCU内転科せず、転棟時転科ルートへ進む","内因性疾患は内科輪番の順番通り振り分け","外科系・マイナー疾患はそれぞれの科へ相談","転棟可能となった時点で、転棟後主科へ連絡する"]);
     extra=wardTransferSteps();
   }else{
     results+=t.time==="夜間・休日"
@@ -249,20 +251,10 @@ function renderTransfer(){
   return{selected,q,results,extra};
 }
 
-function renderWard(){return{selected:selectedPills(["転棟時転科"]),q:"",results:resultCard("gray","転棟時転科ルート",["EHCU内転科対象外、または転棟時に主科を変更する場合のルート","転棟可能となった時点で、転棟後主科へ連絡する"]),extra:wardTransferSteps()}}
+function renderWard(){return{selected:selectedPills(["転棟時転科"]),q:"",results:resultCard("gray","転棟時転科ルート",["EHCU内転科対象外、または転棟時に主科を変更する場合のルート","内因性疾患は内科輪番の順番通り振り分け","外科系・マイナー疾患はそれぞれの科へ相談","転棟可能となった時点で、転棟後主科へ連絡する"]),extra:wardTransferSteps()}}
 function renderRules(){return{selected:selectedPills(["ルール参照"]),results:"",extra:"",q:`
   <section class="rulebook">
     <div class="rule-note">このアプリは患者情報を入力せず、EHCU入室時・転科時に「誰へ連絡し、次に何をするか」を確認する院内運用専用ナビゲーターです。</div>
-
-    <section class="rule-section">
-      <h2>基本方針</h2>
-      <ul>
-        <li>最初に「EHCU入室時フロー」または「転科時フロー」を選択する。</li>
-        <li>総合内科対象疾患や主科など、選択肢が多い場面はプルダウンで選択する。</li>
-        <li>判定結果を上に表示し、次の操作を下に表示する。</li>
-        <li>チェックボックスは使わない。</li>
-      </ul>
-    </section>
 
     <section class="rule-section">
       <h2>EHCU入室時フロー</h2>
@@ -299,10 +291,11 @@ function renderRules(){return{selected:selectedPills(["ルール参照"]),result
       </ul>
       <h3>総合内科転科ルート</h3>
       <ul>
-        <li>平日日勤：EICU加療歴を確認する。</li>
-        <li>EICU加療歴なし：まず井本先生へ転科依頼。不在・不可の場合は内科輪番当番へ依頼。</li>
-        <li>EICU加療歴あり / Step down後：井本先生をスキップし、内科輪番当番へ直接依頼。</li>
-        <li>夜間・休日：井本先生へLINE WORKSで連絡し、総合内科転科となったことをEHCU病棟番へ連絡。</li>
+        <li>平日日勤・夜間・休日ともに、まずEICU加療歴を確認する。</li>
+        <li>EICU加療歴なし：平日日勤はまず井本先生へ転科依頼。不在・不可の場合は内科輪番当番へ依頼。</li>
+        <li>EICU加療歴なし：夜間・休日は井本先生へLINE WORKSで連絡し、総合内科転科となったことをEHCU病棟番へ連絡。</li>
+        <li>EICU加療歴あり / Step down後：平日日勤は井本先生をスキップし、内科輪番当番へ直接依頼。</li>
+        <li>EICU加療歴あり / Step down後：夜間・休日は内科輪番を確認し、転科先へ連絡して承諾を得る。</li>
       </ul>
       <h3>総合内科対象外</h3>
       <ul>
@@ -310,6 +303,7 @@ function renderRules(){return{selected:selectedPills(["ルール参照"]),result
         <li>平日日勤：転科先へ依頼し、直接電話またはLINE WORKSで情報共有。</li>
         <li>夜間・休日：転科先へLINE WORKSで連絡し、転科となったことをEHCU病棟番へ連絡。</li>
         <li>その他：EHCU内転科対象外。転棟時転科ルートへ進む。</li>
+        <li>EHCU内転科対象外では、内因性疾患は内科輪番の順番通り振り分け、外科系・マイナー疾患はそれぞれの科へ相談する。</li>
       </ul>
     </section>
 
@@ -330,6 +324,7 @@ function renderRules(){return{selected:selectedPills(["ルール参照"]),result
     <section class="rule-section">
       <h2>転棟時転科ルート</h2>
       <ol>
+        <li>内因性疾患は内科輪番の順番通り振り分け。外科系・マイナー疾患はそれぞれの科へ相談。</li>
         <li>転棟可能となった時点で、転棟後主科へ連絡。直接電話またはLINE WORKSで情報共有。</li>
         <li>平日日勤の転棟時：転棟後主科へ連絡。</li>
         <li>夜間・休日の転棟時：原則として夜間・休日の転棟は控える。やむを得ず転棟する場合は、転棟後主科へLINE WORKSで連絡。</li>
