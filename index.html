@@ -103,7 +103,7 @@ select{width:100%;min-height:58px;border:1px solid #b9c9dc;border-radius:14px;ba
     <div class="stack">
       <button class="btn primary" data-start="admission">EHCU入室時フロー</button>
       <button class="btn primary" data-start="transfer">転科時フロー</button>
-      <button class="btn primary" data-start="drcall">Dr.callフロー</button>
+      <button class="btn primary" data-start="drcall">EHCU看護師向けDr.callフロー</button>
       <button class="btn primary" data-start="rules">ルール参照</button>
     </div>
   </section>
@@ -316,7 +316,7 @@ function renderTransfer(){
 
 function renderDrCall(){
   const d=state.drcall;
-  const selected=selectedPills(["Dr.callフロー",d.scene,d.time,d.dept]);
+  const selected=selectedPills(["EHCU看護師向けDr.callフロー",d.scene,d.time,d.dept]);
   let q="",results="",extra="";
   if(!d.scene){q=buttonQuestion("STEP 1：場面を選択","drcall","scene",sceneOptions);return{selected,q,results,extra}}
   if(!d.time){q=buttonQuestion("STEP 2：時間帯を選択","drcall","time",timeOptions);return{selected,q,results,extra}}
@@ -336,7 +336,7 @@ function renderDrCall(){
     if(d.time==="平日日勤"){
       results=resultCard("purple","Dr.call順序：転科先が記載",["転科先が一般病棟用指示簿へ書き換え","転科先がドクターコール順序を記載"]);
     }else if(d.dept==="その他"){
-      results=resultCard("gray","Dr.callフロー対象外",["その他は、Dr.callフローではなく転棟時転科ルートを参照する"]);
+      results=resultCard("gray","EHCU看護師向けDr.callフロー対象外",["その他は、EHCU看護師向けDr.callフローではなく転棟時転科ルートを参照する"]);
     }else if(noNightTransfer.includes(d.dept)){
       results=resultCard("gray","夜間・休日のEHCU内転科対象外",["泌尿器科・血管外科・心臓血管外科への夜間・休日転科は行わない","原則として翌平日日勤帯に転科先へ相談する","夜間・休日には新規のDr.call順序は設定しない"]);
     }else if(d.dept==="救急科"){
@@ -362,13 +362,13 @@ function renderRules(){
   return{selected:selectedPills(["ルール参照"]),results:"",extra:"",q:`
   <section class="rulebook">
     <div class="rule-note">EHCU入室時・転科時・Dr.callについて、誰へ連絡し、次に何をするかを確認する院内運用専用ナビゲーターです。</div>
-    <section class="rule-section"><h2>Version 1.2の要点</h2><ul><li>トップ画面はEHCU入室時フロー、転科時フロー、Dr.callフロー、ルール参照。</li><li>EICU加療歴は「あり」「なし」の2択。現在地ではなく、EICU加療歴で判定する。</li><li>救急科とその他は別ルートとして扱う。</li><li>泌尿器科・血管外科・心臓血管外科への夜間・休日転科は行わない。</li></ul></section>
+    <section class="rule-section"><h2>Version 1.2の要点</h2><ul><li>トップ画面はEHCU入室時フロー、転科時フロー、EHCU看護師向けDr.callフロー、ルール参照。</li><li>EICU加療歴は「あり」「なし」の2択。現在地ではなく、EICU加療歴で判定する。</li><li>救急科とその他は別ルートとして扱う。</li><li>泌尿器科・血管外科・心臓血管外科への夜間・休日転科は行わない。</li></ul></section>
     <section class="rule-section"><h2>総合内科対象疾患</h2><ul><li>${gmDiseases.join("、")}。</li></ul></section>
     <section class="rule-section"><h2>主科・転科先</h2><ul><li>${departments.join("、")}。</li><li>救急科は明示的に救急科主科を選択するルート。その他は該当主科がないため、いったん救急科主科で入室し、転科時フローに従うルート。</li></ul></section>
     <section class="rule-section"><h2>色分け</h2><ul><li>緑：NEWS低値・一般病棟優先検討</li><li>黄色：EHCU入室検討</li><li>オレンジ：総合内科ルート</li><li>紫：他科入室・他科転科・内科輪番直接ルート</li><li>青：救急科主科ルート</li><li>グレー：EHCU内転科対象外・転棟時転科</li></ul></section>
     <section class="rule-section"><h2>NEWS判定</h2><ul><li>NEWS＜4：一般病棟をまず考慮し、急変リスク・モニタリング必要性を再評価する。</li><li>NEWS≧4：EHCU入室を検討し、総合内科対象疾患の判定へ進む。</li></ul></section>
     <section class="rule-section"><h2>夜間・休日転科なしの診療科</h2><ul><li>泌尿器科、血管外科、心臓血管外科。</li><li>原則として翌平日日勤帯に転科先へ相談し、夜間・休日には新規のDr.call順序は設定しない。</li></ul></section>
-    <section class="rule-section"><h2>Dr.callフロー</h2><ul><li>場面、時間帯、主科または転科先に応じてDr.call対象を確認する。</li><li>夜間・休日の総合内科・消化器内科・腎臓内科・呼吸器内科・糖尿病内分泌内科はEHCU病棟番医師ルート。</li><li>救急科主科のDr.callはER当直医師。</li></ul></section>
+    <section class="rule-section"><h2>EHCU看護師向けDr.callフロー</h2><ul><li>場面、時間帯、主科または転科先に応じてDr.call対象を確認する。</li><li>夜間・休日の総合内科・消化器内科・腎臓内科・呼吸器内科・糖尿病内分泌内科はEHCU病棟番医師ルート。</li><li>救急科主科のDr.callはER当直医師。</li></ul></section>
     <section class="rule-section"><h2>転棟時転科ルート</h2><ul><li>内因性疾患は内科輪番の順番通り振り分け、外科系・マイナー疾患はそれぞれの科へ相談する。</li><li>転棟可能となった時点で、転棟後主科へ直接電話またはLINE WORKSで情報共有する。</li></ul></section>
   </section>`};
 }
