@@ -142,7 +142,6 @@ const drCallDepartments=["総合内科",...departments];
 const newsOptions=["NEWS＜4","NEWS≧4"];
 const timeOptions=["平日日勤","夜間・休日"];
 const eicuOptions=["EICU加療歴なし","EICU加療歴あり"];
-const sceneOptions=["EHCU入室時","EHCU内転科後"];
 const noNightTransfer=["泌尿器科","血管外科","心臓血管外科"];
 const state={screen:"home",history:[],admission:{},transfer:{},drcall:{}};
 const $=id=>document.getElementById(id);
@@ -183,7 +182,6 @@ function setValue(area,key,value){
     if(key==="dept"){state.transfer.time=null}
   }
   if(area==="drcall"){
-    if(key==="scene"){state.drcall.time=null;state.drcall.dept=null}
     if(key==="time"){state.drcall.dept=null}
   }
   render();
@@ -317,37 +315,58 @@ function renderTransfer(){
 
 function renderDrCall(){
   const d=state.drcall;
-  const selected=selectedPills(["EHCU看護師向けDr.callフロー",d.scene,d.time,d.dept]);
+  const selected=selectedPills(["EHCU看護師向けDr.callフロー",d.time,d.dept]);
   let q="",results="",extra="";
-  if(!d.scene){q=buttonQuestion("STEP 1：場面を選択","drcall","scene",sceneOptions);return{selected,q,results,extra}}
-  if(!d.time){q=buttonQuestion("STEP 2：時間帯を選択","drcall","time",timeOptions);return{selected,q,results,extra}}
-  if(!d.dept){q=selectQuestion("STEP 3：主科または転科先を選択","drcall","dept",drCallDepartments);return{selected,q,results,extra}}
-  if(d.scene==="EHCU入室時"){
-    if(d.time==="平日日勤"){
-      if(d.dept==="総合内科")results=resultCard("orange","Dr.call：総合内科医師・NP",["総合内科主科でEHCU入室","Dr.callは総合内科医師・NP"]);
-      else if(d.dept==="救急科")results=resultCard("blue","Dr.call：ER当直医師",["救急科主科でEHCU入室","Dr.callはER当直医師"]);
-      else if(d.dept==="その他")results=resultCard("blue","Dr.call：ER当直医師",["その他は、いったん救急科主科でEHCU入室","Dr.callはER当直医師","転科時は転科時フローに従う"]);
-      else results=resultCard("purple","Dr.call：Call指示に従う",[`${d.dept}主科でEHCU入室`,"Dr.callはCall指示に従う"]);
-    }else{
-      if(d.dept==="総合内科")results=resultCard("orange","Dr.call：EHCU病棟番医師",["総合内科主科でEHCU入室","Dr.callはEHCU病棟番医師"]);
-      else if(d.dept==="その他")results=resultCard("blue","Dr.call：ER当直医師",["その他は、いったん救急科主科でEHCU入室","Dr.callはER当直医師","転科時は転科時フローに従う"]);
-      else results=resultCard(d.dept==="救急科"?"blue":"purple",drCallAdmissionNight(d.dept).title,drCallAdmissionNight(d.dept).items);
-    }
-  }else{
-    if(d.time==="平日日勤"){
-      results=resultCard("purple","Dr.call順序：転科先が記載",[`${d.dept}が一般病棟用指示簿へ書き換え`,`${d.dept}がドクターコール順序を記載`]);
-    }else if(d.dept==="その他"){
-      results=resultCard("gray","EHCU看護師向けDr.callフロー対象外",["その他は、EHCU看護師向けDr.callフローではなく転棟時転科ルートを参照する"]);
-    }else if(noNightTransfer.includes(d.dept)){
-      results=resultCard("gray","夜間・休日のEHCU内転科対象外",["泌尿器科・血管外科・心臓血管外科への夜間・休日転科は行わない",`原則として翌平日日勤帯に${d.dept}へ相談する`,"夜間・休日には新規のDr.call順序は設定しない"]);
-    }else if(d.dept==="救急科"){
-      results=resultCard("blue","Dr.call：ER当直医師",["救急科主科で管理","Dr.callはER当直医師"]);
-    }else{
-      const call=nightTransferCall(d.dept);
-      results=resultCard(call.tone,call.title,call.items.slice(3));
-    }
-  }
+  if(!d.time){q=buttonQuestion("STEP 1：時間帯を選択","drcall","time",timeOptions);return{selected,q,results,extra}}
+  if(!d.dept){q=selectQuestion("STEP 2：主科または転科先を選択","drcall","dept",drCallDepartments);return{selected,q,results,extra}}
+  const decision=drCallByTime(d.time,d.dept);
+  results=resultCard(decision.tone,decision.title,decision.items);
+  extra=drCallWorkNotes(d.time,d.dept);
   return{selected,q,results,extra};
+}
+function drCallByTime(time,dept){
+  if(time==="平日日勤"){
+    if(dept==="総合内科")return{tone:"orange",title:"Dr.call：総合内科医師・NP",items:["平日日勤","総合内科主科の場合、Dr.callは総合内科医師・NP","EHCU内転科後は総合内科がドクターコール順序を記載"]};
+    if(dept==="救急科")return{tone:"blue",title:"Dr.call：ER当直医師",items:["平日日勤","救急科主科の場合、Dr.callはER当直医師"]};
+    if(dept==="その他")return{tone:"blue",title:"Dr.call：ER当直医師",items:["その他は、いったん救急科主科でEHCU入室","Dr.callはER当直医師","転科時は転科時フローに従う"]};
+    return{tone:"purple",title:"Dr.call：Call指示に従う",items:["平日日勤",`${dept}主科の場合、Dr.callはCall指示に従う`, `EHCU内転科後は${dept}がドクターコール順序を記載`]};
+  }
+  if(dept==="総合内科")return{tone:"orange",title:"Dr.call：EHCU病棟番医師",items:["夜間・休日","総合内科主科の場合、Dr.callはEHCU病棟番医師","EHCU内転科後もEHCU病棟番医師ルート"]};
+  if(dept==="その他")return{tone:"blue",title:"Dr.call：ER当直医師",items:["その他は、いったん救急科主科でEHCU入室","Dr.callはER当直医師","転科時は転科時フローに従う"]};
+  if(noNightTransfer.includes(dept))return{tone:"gray",title:"夜間・休日のEHCU内転科対象外",items:[`${dept}への夜間・休日転科は行わない`, `入室時に${dept}主科となる場合、Dr.callは${dept}医師`, "EHCU内転科後としては新規のDr.call順序は設定しない"]};
+  const call=drCallAdmissionNight(dept);
+  return{tone:dept==="救急科"?"blue":"purple",title:call.title,items:["夜間・休日",...call.items]};
+}
+function drCallWorkNotes(time,dept){
+  if(time==="平日日勤"){
+    if(dept==="その他"){
+      return numberedSteps("作業メモ",[
+        {title:"EHCU入室時",text:"その他は、いったん救急科主科でEHCU入室。転科時は転科時フローに従う。"},
+        {title:"EHCU内転科後",text:"その他は、EHCU看護師向けDr.callフローではなく転棟時転科ルートを参照する。"}
+      ]);
+    }
+    return numberedSteps("作業メモ",[
+      {title:"EHCU入室時",text:`${dept}主科でEHCU入室する場合のDr.call対象を確認する。`},
+      {title:"EHCU内転科後",text:`${dept}が一般病棟用指示簿へ書き換え、${dept}がドクターコール順序を記載する。`}
+    ]);
+  }
+  if(dept==="その他"){
+    return numberedSteps("作業メモ",[
+      {title:"EHCU入室時",text:"その他は、いったん救急科主科でEHCU入室。転科時は転科時フローに従う。"},
+      {title:"EHCU内転科後",text:"その他は、転棟時転科ルートを参照する。"}
+    ]);
+  }
+  if(noNightTransfer.includes(dept)){
+    return numberedSteps("作業メモ",[
+      {title:"EHCU入室時",text:`${dept}主科でEHCU入院する場合は、${dept}医師をDr.call対象とする。`},
+      {title:"EHCU内転科後",text:`${dept}への夜間・休日転科は行わない。原則として翌平日日勤帯に${dept}へ相談する。`}
+    ]);
+  }
+  const call=nightTransferCall(dept);
+  return numberedSteps("作業メモ",[
+    {title:"EHCU入室時",text:`${dept}主科でEHCU入院する場合のDr.call対象を確認する。`},
+    {title:"EHCU内転科後",text:call.items.slice(3).join("。")}
+  ]);
 }
 function drCallAdmissionNight(dept){
   if(dept==="循環器内科")return{title:"Dr.call：Heart line当直医師",items:["循環器内科主科でEHCU入院","Dr.callはHeart line当直医師"]};
@@ -369,7 +388,7 @@ function renderRules(){
     <section class="rule-section"><h2>色分け</h2><ul><li>緑：NEWS低値・一般病棟優先検討</li><li>黄色：EHCU入室検討</li><li>オレンジ：総合内科ルート</li><li>紫：他科入室・他科転科・内科輪番直接ルート</li><li>青：救急科主科ルート</li><li>グレー：EHCU内転科対象外・転棟時転科</li></ul></section>
     <section class="rule-section"><h2>NEWS判定</h2><ul><li>NEWS＜4：一般病棟をまず考慮し、急変リスク・モニタリング必要性を再評価する。</li><li>NEWS≧4：EHCU入室を検討し、総合内科対象疾患の判定へ進む。</li></ul></section>
     <section class="rule-section"><h2>夜間・休日転科なしの診療科</h2><ul><li>泌尿器科、血管外科、心臓血管外科。</li><li>原則として翌平日日勤帯に転科先へ相談し、夜間・休日には新規のDr.call順序は設定しない。</li></ul></section>
-    <section class="rule-section"><h2>EHCU看護師向けDr.callフロー</h2><ul><li>場面、時間帯、主科または転科先に応じてDr.call対象を確認する。</li><li>夜間・休日の総合内科・消化器内科・腎臓内科・呼吸器内科・糖尿病内分泌内科はEHCU病棟番医師ルート。</li><li>救急科主科のDr.callはER当直医師。</li></ul></section>
+    <section class="rule-section"><h2>EHCU看護師向けDr.callフロー</h2><ul><li>時間帯と主科または転科先に応じてDr.call対象を確認する。</li><li>EHCU入室時とEHCU内転科後で異なる周辺作業は、判定結果の下に作業メモとして表示する。</li><li>夜間・休日の総合内科・消化器内科・腎臓内科・呼吸器内科・糖尿病内分泌内科はEHCU病棟番医師ルート。</li><li>救急科主科のDr.callはER当直医師。</li></ul></section>
     <section class="rule-section"><h2>転棟時転科ルート</h2><ul><li>内因性疾患は内科輪番の順番通り振り分け、外科系・マイナー疾患はそれぞれの科へ相談する。</li><li>転棟可能となった時点で、転棟後主科へ直接電話またはLINE WORKSで情報共有する。</li></ul></section>
   </section>`};
 }
