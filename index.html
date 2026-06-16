@@ -242,7 +242,7 @@ function commonTransferSteps(time,dept){
   const target=dept||"転科先";
   if(time==="平日日勤"){
     return numberedSteps("EHCU内転科成立時の共通STEP：平日日勤",[
-      {title:`${target}へ依頼`},{title:"直接電話またはLINE WORKSで情報共有"},{title:"救急科で電子カルテ上の主科・主治医変更"},{title:"救急科で重症指示簿を消去"},{title:`${target}が一般病棟用指示簿へ書き換え`},{title:`${target}がドクターコール順序を記載`}
+      {title:`${target}へ依頼`},{title:"直接電話またはLINE WORKSで情報共有"},{title:"救急科で重症指示簿を消去"},{title:"転科先医師にて主科・主治医変更"},{title:`${target}が一般病棟用指示簿へ書き換え`},{title:`${target}がドクターコール順序を記載`}
     ]);
   }
   if(noNightTransfer.includes(dept)){
@@ -252,12 +252,12 @@ function commonTransferSteps(time,dept){
   return resultCard(map.tone,map.title,map.items,"EHCU内転科成立時の共通STEP：夜間・休日");
 }
 function nightTransferCall(dept){
-  if(["総合内科","消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return{tone:"purple",title:"Dr.call：EHCU病棟番医師",items:["EHCU病棟番医師に連絡","救急科で電子カルテ上の主科・主治医変更","救急科で重症指示簿を消去","EHCU病棟番医師が一般病棟用指示簿へ書き換え",`翌平日日勤帯に${dept}がドクターコール順序を記載`]};
-  if(dept==="循環器内科")return{tone:"purple",title:"Dr.call：Heart line当直医師",items:["Heart line当直医師に連絡","救急科で電子カルテ上の主科・主治医変更","救急科で重症指示簿を消去","Heart line当直医師が一般病棟用指示簿へ書き換え","Heart line当直医師がドクターコール順序を記載"]};
-  if(["脳神経内科","脳神経外科"].includes(dept))return{tone:"purple",title:"Dr.call：Stroke line当直医師",items:["Stroke line当直医師に連絡","救急科で電子カルテ上の主科・主治医変更","救急科で重症指示簿を消去","Stroke line当直医師が一般病棟用指示簿へ書き換え","Stroke line当直医師がドクターコール順序を記載"]};
-  if(dept==="消化器外科")return{tone:"purple",title:"Dr.call：ER当直医師",items:["ER当直医師に連絡","救急科で電子カルテ上の主科・主治医変更","救急科で重症指示簿を消去","ER当直医師が一般病棟用指示簿へ書き換え","ER当直医師がドクターコール順序を記載"]};
-  if(dept==="救急科")return{tone:"blue",title:"Dr.call：ER当直医師",items:["ER当直医師に連絡","救急科で電子カルテ上の主科・主治医変更","救急科で重症指示簿を消去","ER当直医師が一般病棟用指示簿へ書き換え","ER当直医師がドクターコール順序を記載"]};
-  return{tone:"purple",title:"Dr.call：Call指示に従う",items:[`${dept}へ連絡`,"救急科で電子カルテ上の主科・主治医変更","救急科で重症指示簿を消去","Dr.call順序を確認する"]};
+  if(["総合内科","消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return{tone:"purple",title:"Dr.call：EHCU病棟番医師",items:["EHCU病棟番医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","EHCU病棟番医師が一般病棟用指示簿へ書き換え",`翌平日日勤帯に${dept}がドクターコール順序を記載`]};
+  if(dept==="循環器内科")return{tone:"purple",title:"Dr.call：Heart line当直医師",items:["Heart line当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","Heart line当直医師が一般病棟用指示簿へ書き換え","Heart line当直医師がドクターコール順序を記載"]};
+  if(["脳神経内科","脳神経外科"].includes(dept))return{tone:"purple",title:"Dr.call：Stroke line当直医師",items:["Stroke line当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","Stroke line当直医師が一般病棟用指示簿へ書き換え","Stroke line当直医師がドクターコール順序を記載"]};
+  if(dept==="消化器外科")return{tone:"purple",title:"Dr.call：ER当直医師",items:["ER当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","ER当直医師が一般病棟用指示簿へ書き換え","ER当直医師がドクターコール順序を記載"]};
+  if(dept==="救急科")return{tone:"blue",title:"Dr.call：ER当直医師",items:["ER当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","ER当直医師が一般病棟用指示簿へ書き換え","ER当直医師がドクターコール順序を記載"]};
+  return{tone:"purple",title:"Dr.call：Call指示に従う",items:[`${dept}へ連絡`,"救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","Dr.call順序を確認する"]};
 }
 function wardTransferSteps(){return numberedSteps("転棟時転科ルート",[{title:"転棟後主科の考え方",text:"内因性疾患は内科輪番の順番通り振り分け。外科系・マイナー疾患はそれぞれの科へ相談。"},{title:"転棟可能となった時点",text:"転棟可能となった時点で、転棟後主科へ連絡。直接電話またはLINE WORKSで情報共有。"},{title:"平日日勤の転棟時",text:"転棟時に転棟後主科へ連絡。"},{title:"夜間・休日の転棟時",text:"原則として夜間・休日の転棟は控える。やむを得ず転棟する場合は、転棟後主科へLINE WORKSで連絡。"}])}
 
