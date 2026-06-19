@@ -232,7 +232,7 @@ function admissionNightItems(dept){
   if(dept==="消化器外科")return["EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断","消化器外科主科でEHCU入院","Dr.callはER当直医師または消化器外科医師"];
   if(dept==="脳神経内科")return["EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断","脳神経内科主科でEHCU入院","Dr.callはStroke line当直医師"];
   if(dept==="脳神経外科")return["EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断","脳神経外科主科でEHCU入院","Dr.callはStroke line当直医師"];
-  if(["消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return["EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断",`${dept}主科でEHCU入院`,"Dr.callはEHCU病棟番医師"];
+  if(["消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return["EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断",`${dept}主科でEHCU入院`,"Dr.callは内科病棟番（現EHCU当直）"];
   if(noNightTransfer.includes(dept))return[`${dept}医師に相談し承諾を得て、${dept}主科で入院`,"EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断",`${dept}主科でEHCU入院`,`Dr.callは${dept}医師`];
   if(dept==="救急科")return["EICU当番医師へ担当医より入室連絡","EICU当番医が最終判断","救急科主科でEHCU入院","Dr.callはER当直医師"];
   return[`${dept}主科でEHCU入院`,"Dr.callはCall指示に従う"];
@@ -253,7 +253,7 @@ function commonTransferSteps(time,dept){
 }
 function nightTransferCall(dept){
   if(dept==="総合内科")return{tone:"orange",title:"Dr.call：内科病棟番（現EHCU当直）",items:["内科病棟番（現EHCU当直）に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","内科病棟番（現EHCU当直）が一般病棟用指示簿へ書き換え","翌平日日勤帯に総合内科がドクターコール順序を記載"]};
-  if(["総合内科","消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return{tone:"purple",title:"Dr.call：EHCU病棟番医師",items:["EHCU病棟番医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","EHCU病棟番医師が一般病棟用指示簿へ書き換え",`翌平日日勤帯に${dept}がドクターコール順序を記載`]};
+  if(["消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return{tone:"purple",title:"Dr.call：内科病棟番（現EHCU当直）",items:["内科病棟番（現EHCU当直）に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","内科病棟番（現EHCU当直）が一般病棟用指示簿へ書き換え",`翌平日日勤帯に${dept}がドクターコール順序を記載`]};
   if(dept==="循環器内科")return{tone:"purple",title:"Dr.call：Heart line当直医師",items:["Heart line当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","Heart line当直医師が一般病棟用指示簿へ書き換え","Heart line当直医師がドクターコール順序を記載"]};
   if(["脳神経内科","脳神経外科"].includes(dept))return{tone:"purple",title:"Dr.call：Stroke line当直医師",items:["Stroke line当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","Stroke line当直医師が一般病棟用指示簿へ書き換え","Stroke line当直医師がドクターコール順序を記載"]};
   if(dept==="消化器外科")return{tone:"purple",title:"Dr.call：ER当直医師",items:["ER当直医師に連絡","救急科で重症指示簿を消去","転科先医師にて主科・主治医変更","ER当直医師が一般病棟用指示簿へ書き換え","ER当直医師がドクターコール順序を記載"]};
@@ -277,7 +277,7 @@ function renderAdmission(){
     results+=resultCard("orange","総合内科ルート",["総合内科対象疾患として対応","STEP 3：時間帯を選択"],"STEP 2");
     if(!a.time){q=buttonQuestion("STEP 3：時間帯を選択","admission","time",timeOptions,"時間帯はDr.call確認のために選択します。");return{selected,q,results,extra}}
     const call=a.time==="平日日勤"?"Dr.callはNP・井本先生":"Dr.callは内科病棟番（現EHCU当直）";
-    results+=resultCard("orange","総合内科主科・井本先生主治医でEHCU入室",["井本先生主治医で入院","入院時は相談不要","EHCU入室",call],"STEP 3");
+    results+=resultCard("orange","総合内科主科・井本先生主治医でEHCU入室",["井本先生主治医で入院","入院時は相談不要","EICU当番医師へ担当医より入室連絡","EHCU入室",call],"STEP 3");
     return{selected,q,results,extra};
   }
   if(!a.dept){q=selectQuestion("STEP 3：主科を選択","admission","dept",departments);return{selected,q,results,extra}}
@@ -308,7 +308,11 @@ function renderTransfer(){
   if(isGm(t.disease)){
     results+=resultCard("orange","総合内科転科ルート",["総合内科対象疾患として転科を検討","ICU加療歴を問わない","STEP 2：時間帯を選択"]);
     if(!t.time){q=buttonQuestion("STEP 2：時間帯を選択","transfer","time",timeOptions,"EHCU内転科成立時の共通STEPとDr.call確認のために選択します。");return{selected,q,results,extra}}
-    results+=resultCard("orange","井本先生へまず相談",["総合内科対象疾患であれば井本先生にまず相談","総合内科で対応可能なら総合内科主科・井本先生主治医","EICUから転科時、総合内科で対応困難な場合は内科輪番で主科決定","EHCU内転科成立時の共通STEPへ進む"]);
+    if(t.time==="夜間・休日"){
+      results+=resultCard("orange","夜間・休日：相談不要で総合内科転科OK",["総合内科対象疾患であれば相談不要で転科OK","総合内科主科でEHCU内転科","EHCU内転科成立時の共通STEPへ進む"]);
+    }else{
+      results+=resultCard("orange","井本先生へまず相談",["総合内科対象疾患であれば井本先生にまず相談","総合内科で対応可能なら総合内科主科・井本先生主治医","EICUから転科時、総合内科で対応困難な場合は内科輪番で主科決定","EHCU内転科成立時の共通STEPへ進む"]);
+    }
     extra=commonTransferSteps(t.time,"総合内科");
     return{selected,q,results,extra};
   }
@@ -390,7 +394,7 @@ function drCallAdmissionNight(dept){
   if(dept==="循環器内科")return{title:"Dr.call：Heart line当直医師",items:["循環器内科主科でEHCU入院","Dr.callはHeart line当直医師"]};
   if(["脳神経内科","脳神経外科"].includes(dept))return{title:"Dr.call：Stroke line当直医師",items:[`${dept}主科でEHCU入院`,"Dr.callはStroke line当直医師"]};
   if(dept==="消化器外科")return{title:"Dr.call：ER当直医師または消化器外科医師",items:["消化器外科主科でEHCU入院","Dr.callはER当直医師または消化器外科医師"]};
-  if(["消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return{title:"Dr.call：EHCU病棟番医師",items:[`${dept}主科でEHCU入院`,"Dr.callはEHCU病棟番医師"]};
+  if(["消化器内科","腎臓内科","呼吸器内科","糖尿病内分泌内科"].includes(dept))return{title:"Dr.call：内科病棟番（現EHCU当直）",items:[`${dept}主科でEHCU入院`,"Dr.callは内科病棟番（現EHCU当直）"]};
   if(noNightTransfer.includes(dept))return{title:`Dr.call：${dept}医師`,items:[`${dept}主科でEHCU入院`,`Dr.callは${dept}医師`]};
   if(dept==="救急科")return{title:"Dr.call：ER当直医師",items:["救急科主科でEHCU入院","Dr.callはER当直医師"]};
   return{title:"Dr.call：Call指示に従う",items:[`${dept}主科でEHCU入院`,"Dr.callはCall指示に従う"]};
@@ -416,15 +420,15 @@ function renderRules(){
   return{selected:selectedPills(["ルール参照"]),results:"",extra:"",q:`
   <section class="rulebook">
     <div class="rule-note">EHCU入室時・転科時・Dr.callについて、誰へ連絡し、次に何をするかを確認する院内運用専用ナビゲーターです。</div>
-    <section class="rule-section"><h2>Version 1.4の要点</h2><ul><li>トップ画面はEHCU入室時フロー、転科時フロー、EHCU看護師向けDr.callフロー、EHCU入院患者容態変化時、ルール参照。</li><li>総合内科対象疾患はICU加療歴を問わない。</li><li>EHCU入室時は、総合内科対象疾患であれば総合内科主科・井本先生主治医で入院し、入院時相談は不要。</li><li>救急科から転科時は井本先生にまず相談する。</li><li>EICUから転科時、総合内科で対応困難な場合は内科輪番で主科決定する。</li><li>泌尿器科・血管外科・心臓血管外科への夜間・休日転科は行わない。</li></ul></section>
+    <section class="rule-section"><h2>Version 1.4の要点</h2><ul><li>トップ画面はEHCU入室時フロー、転科時フロー、EHCU看護師向けDr.callフロー、EHCU入院患者容態変化時、ルール参照。</li><li>総合内科対象疾患はICU加療歴を問わない。</li><li>EHCU入室時は、総合内科対象疾患であれば総合内科主科・井本先生主治医で入院し、入院時相談は不要。</li><li>平日日勤の救急科から転科時は井本先生にまず相談する。</li><li>夜間休日は相談不要で総合内科転科OK。</li><li>EICUから転科時、総合内科で対応困難な場合は内科輪番で主科決定する。</li><li>泌尿器科・血管外科・心臓血管外科への夜間・休日転科は行わない。</li></ul></section>
     <section class="rule-section"><h2>総合内科対象疾患</h2><ul><li>${gmDiseaseList.join("、")}。</li><li>ICU加療歴を問わない。</li></ul></section>
-    <section class="rule-section"><h2>総合内科主科</h2><ul><li>EHCU入室時：総合内科対象疾患であれば、総合内科主科・井本先生主治医で入院。入院時は相談不要。</li><li>救急科から転科時：総合内科対象疾患であれば井本先生にまず相談。</li><li>EICUから転科時：総合内科で対応困難な時は内科輪番で主科決定。</li><li>Call 平日：NP・井本先生。</li><li>Call 夜間休日：内科病棟番（現EHCU当直）。</li></ul></section>
+    <section class="rule-section"><h2>総合内科主科</h2><ul><li>EHCU入室時：総合内科対象疾患であれば、総合内科主科・井本先生主治医で入院。入院時は相談不要。</li><li>EHCU総合内科主科入室時も、EICU当番医師へ担当医より入室連絡を行う。</li><li>平日日勤の救急科から転科時：総合内科対象疾患であれば井本先生にまず相談。</li><li>夜間休日：相談不要で総合内科転科OK。</li><li>EICUから転科時：総合内科で対応困難な時は内科輪番で主科決定。</li><li>Call 平日：NP・井本先生。</li><li>Call 夜間休日：内科病棟番（現EHCU当直）。</li></ul></section>
     <section class="rule-section"><h2>主科・転科先</h2><ul><li>${ehcuPrimaryDepartments.join("、")}。</li><li>救急科は明示的に救急科主科を選択するルート。その他は該当主科がないため、いったん救急科主科で入室し、転科時フローに従うルート。</li></ul></section>
     <section class="rule-section"><h2>EHCU内主科可能科</h2><ul><li>${ehcuPrimaryDepartments.join("、")}。</li><li>主科・転科先プルダウンで選択できる診療科。その他は診療科名ではなく、該当科がない場合の分岐として扱う。</li></ul></section>
     <section class="rule-section"><h2>一般病棟転棟時転科科</h2><ul><li>${wardTransferDepartments.join("、")}。</li><li>EHCU内転科ではなく、転棟時転科として確認する。</li></ul></section>
     <section class="rule-section"><h2>NEWS判定</h2><ul><li>NEWS＜4：一般病棟をまず考慮し、急変リスク・モニタリング必要性を再評価する。</li><li>NEWS≧4：EHCU入室を検討し、総合内科対象疾患の判定へ進む。</li></ul></section>
     <section class="rule-section"><h2>夜間・休日転科なしの診療科</h2><ul><li>泌尿器科、血管外科、心臓血管外科。</li><li>原則として翌平日日勤帯に転科先へ相談し、夜間・休日には新規のDr.call順序は設定しない。</li></ul></section>
-    <section class="rule-section"><h2>EHCU看護師向けDr.callフロー</h2><ul><li>時間帯と主科または転科先に応じてDr.call対象を確認する。</li><li>EHCU入室時とEHCU内転科後で異なる周辺作業は、判定結果の下に作業メモとして表示する。</li><li>総合内科の平日はNP・井本先生。</li><li>総合内科の夜間休日は内科病棟番（現EHCU当直）。</li><li>救急科主科のDr.callはER当直医師。</li></ul></section>
+    <section class="rule-section"><h2>EHCU看護師向けDr.callフロー</h2><ul><li>時間帯と主科または転科先に応じてDr.call対象を確認する。</li><li>EHCU入室時とEHCU内転科後で異なる周辺作業は、判定結果の下に作業メモとして表示する。</li><li>総合内科の平日はNP・井本先生。</li><li>総合内科・消化器内科・腎臓内科・呼吸器内科・糖尿病内分泌内科の夜間休日は内科病棟番（現EHCU当直）。</li><li>救急科主科のDr.callはER当直医師。</li></ul></section>
     <section class="rule-section"><h2>EHCU入院患者容態変化時</h2><ul><li>NEWS scoreを確認する。</li><li>黄色・赤に該当する場合は、1st Dr.callとEICU当番医callを行う。</li><li>EICU当番医対応困難な時はGICU Dr.callを行う。</li><li>EICU/GICUへのStep upを検討する。</li></ul></section>
     <section class="rule-section"><h2>転棟時転科ルート</h2><ul><li>内因性疾患は内科輪番の順番通り振り分け、外科系・マイナー疾患はそれぞれの科へ相談する。</li><li>転棟可能となった時点で、転棟後主科へ直接電話またはLINE WORKSで情報共有する。</li></ul></section>
   </section>`};
